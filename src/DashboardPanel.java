@@ -13,25 +13,20 @@ public class DashboardPanel extends JPanel {
     }
 
     public JTextField addLabeledTextField(String id, String labelText) {
-        //create a horizontal panel to hold label + field
         JPanel row = new JPanel();
         row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
         row.setAlignmentX(Component.LEFT_ALIGNMENT);
         row.setOpaque(false);
 
-        //create label
         JLabel label = new JLabel(labelText);
-        label.setPreferredSize(new Dimension(150, 30)); //fixed width label
+        label.setPreferredSize(new Dimension(150, 30));
         row.add(label);
 
-        //create text field
         JTextField textField = new JTextField();
         textField.setPreferredSize(new Dimension(300, 30));
         textField.setMaximumSize(new Dimension(300, 30));
-        textFields.put(id, textField);
         row.add(textField);
 
-        //add spacing below
         add(Box.createVerticalStrut(10));
         add(row);
 
@@ -40,6 +35,7 @@ public class DashboardPanel extends JPanel {
 
         return textField;
     }
+
 
     public void setText(String id, String text) {
         JTextField field = textFields.get(id);

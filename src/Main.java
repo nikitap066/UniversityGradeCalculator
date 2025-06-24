@@ -44,17 +44,38 @@ public class Main extends JFrame {
         addButton.addActionListener(e -> {
             String id = "txt" + textBoxCounter;
 
-            JTextField gradeField = panel.addLabeledTextField(id + "_val", "Grade " + textBoxCounter + ":");
-            JTextField worthField = panel.addLabeledTextField(id + "_worth", "Worth (%) " + textBoxCounter + ":");
+            JPanel row = new JPanel();
+            row.setLayout(new FlowLayout(FlowLayout.LEFT));
+            row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
+            row.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+
+
+            JTextField gradeField = new JTextField(5);
+            JTextField worthField = new JTextField(5);
+            JButton removeButton = new JButton("Remove");
+
+            row.add(new JLabel("Grade:"));
+            row.add(gradeField);
+            row.add(new JLabel("Worth (%):"));
+            row.add(worthField);
+            row.add(removeButton);
 
             valueFields.put(id, gradeField);
             worthFields.put(id, worthField);
 
-            DocumentListener listener = new DocumentListener() {
-                void update() {
-                    updateAverage();
-                }
+            //remove logic
+            removeButton.addActionListener(ev -> {
+                panel.remove(row);
+                panel.revalidate();
+                panel.repaint();
+                valueFields.remove(id); //removes the grade form the hashmap
+                worthFields.remove(id);
+                updateAverage();
+            });
 
+            //listener for recalculating
+            DocumentListener listener = new DocumentListener() {
+                void update() { updateAverage(); }
                 public void insertUpdate(DocumentEvent e) { update(); }
                 public void removeUpdate(DocumentEvent e) { update(); }
                 public void changedUpdate(DocumentEvent e) { update(); }
@@ -63,6 +84,10 @@ public class Main extends JFrame {
             gradeField.getDocument().addDocumentListener(listener);
             worthField.getDocument().addDocumentListener(listener);
             targetField.getDocument().addDocumentListener(listener);
+
+            panel.add(row);
+            panel.revalidate();
+            panel.repaint();
 
             textBoxCounter++;
         });
@@ -95,16 +120,17 @@ public class Main extends JFrame {
         if (weightSum < 100) {
             double remaining = Math.round((100 - weightSum) * 100.0) / 100.0;
             double required = Math.round(((targetMark - total) / remaining) * 100);
-            if  (required > 100) {
-                double maxPotentiallyAchieved = total + ((remaining / 100.0) * 100);
-                bottomLabel.setText("Cannot reach " + targetMark + "% overall. " +
-                        "Maximum overall grade that can be achieved is " + maxPotentiallyAchieved);
-            }
-            else if (required < 0) {
+            if (required < 0) {
                 required = 0;
             }
             bottomLabel.setText("Need " + required + "/100 in remaining "
                     + remaining + "% to reach " + targetMark + "% overall. Current average is " + average + "%");
+
+            if  (required > 100) {
+                double maxPotentiallyAchieved = Math.round(total + ((remaining / 100.0) * 100));
+                bottomLabel.setText("Cannot reach " + targetMark + "% overall. " +
+                        "Maximum overall grade that can be achieved is " + maxPotentiallyAchieved + "%");
+            }
         }
         else if (weightSum == 100) {
             bottomLabel.setText("Module Total: " + average + "/100");
@@ -125,29 +151,29 @@ public class Main extends JFrame {
             setBackground(Color.WHITE);
         }
 
-        public JTextField addLabeledTextField(String id, String labelText) {
-            JPanel row = new JPanel();
-            row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
-            row.setAlignmentX(Component.LEFT_ALIGNMENT);
-            row.setOpaque(false);
-
-            JLabel label = new JLabel(labelText);
-            label.setPreferredSize(new Dimension(150, 30));
-            row.add(label);
-
-            JTextField field = new JTextField();
-            field.setName(id);
-            field.setPreferredSize(new Dimension(100, 30));
-            field.setMaximumSize(new Dimension(100, 30));
-            row.add(field);
-
-            add(Box.createVerticalStrut(5));
-            add(row);
-
-            revalidate();
-            repaint();
-
-            return field;
-        }
+//        public JTextField addLabeledTextField(String id, String labelText) {
+//            JPanel row = new JPanel();
+//            row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+//            row.setAlignmentX(Component.LEFT_ALIGNMENT);
+//            row.setOpaque(false);
+//
+//            JLabel label = new JLabel(labelText);
+//            label.setPreferredSize(new Dimension(150, 30));
+//            row.add(label);
+//
+//            JTextField field = new JTextField();
+//            field.setName(id);
+//            field.setPreferredSize(new Dimension(100, 30));
+//            field.setMaximumSize(new Dimension(100, 30));
+//            row.add(field);
+//
+//            add(Box.createVerticalStrut(5));
+//            add(row);
+//
+//            revalidate();
+//            repaint();
+//
+//            return field;
+//        }
     }
 }

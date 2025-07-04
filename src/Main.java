@@ -12,7 +12,7 @@ public class Main extends JFrame {
     private final Map<String, JTextField> worthFields = new HashMap<>();
     private final JLabel bottomLabel = new JLabel("Weighted Average or Remaining Mark will show here.");
     private final JTextField targetField = new JTextField("70", 5); // default target
-    private int textBoxCounter = 1;
+    private int textBoxCounter = 0;
 
     public Main() {
         setTitle("University Grade Calculator");
@@ -20,10 +20,39 @@ public class Main extends JFrame {
         setSize(800, 600);
         setLayout(new BorderLayout());
 
-        //top panel for target mark input
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        topPanel.add(new JLabel("Target Mark (%):"));
-        topPanel.add(targetField);
+        //top panel for target mark input and toggle
+        JPanel topPanel = new JPanel(new BorderLayout());
+
+        //left side panel
+        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        leftPanel.add(new JLabel("Target Mark (%):"));
+        leftPanel.add(targetField);
+        //right side panel
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JLabel defaultLabel = new JLabel("Default");
+        defaultLabel.setForeground(Color.RED);
+        JButton toggleButton = new JButton("Toggle");
+        toggleButton.setForeground(Color.RED);
+        JLabel moduleLabel = new JLabel("Modules");
+        moduleLabel.setForeground(Color.BLUE);
+        rightPanel.add(defaultLabel);
+        rightPanel.add(toggleButton);
+        rightPanel.add(moduleLabel);
+
+        toggleButton.addActionListener(e -> {
+            if (toggleButton.getForeground().equals(Color.BLUE)) {
+                toggleButton.setForeground(Color.RED);
+            }
+            else  {
+                toggleButton.setForeground(Color.BLUE);
+            }
+        });
+        
+
+        //add both to topPanel
+        topPanel.add(leftPanel, BorderLayout.WEST);
+        topPanel.add(rightPanel, BorderLayout.EAST);
+        //add to main container
         add(topPanel, BorderLayout.NORTH);
 
         //main panel for dynamic text fields
@@ -70,6 +99,7 @@ public class Main extends JFrame {
                 panel.repaint();
                 valueFields.remove(id); //removes the grade form the hashmap
                 worthFields.remove(id);
+                textBoxCounter--;
                 updateAverage();
             });
 
@@ -102,7 +132,9 @@ public class Main extends JFrame {
 
         try {
             targetMark = Double.parseDouble(targetField.getText().trim());
-        } catch (NumberFormatException ignored) {}
+        } catch (NumberFormatException ignored) {
+            // throw number exception if negative or incorrect format
+        }
 
         for (String id : valueFields.keySet()) {
             JTextField gradeField = valueFields.get(id);
@@ -113,21 +145,25 @@ public class Main extends JFrame {
                 double worth = Double.parseDouble(worthField.getText().trim());
                 total += grade * (worth / 100.0);
                 weightSum += worth;
-            } catch (NumberFormatException ignored) {}
+                weightSum = roundToTwoDecimalPlaces(weightSum);
+            } catch (NumberFormatException e) {
+                // throw number exception if negative or incorrect format
+            }
         }
 
-        double average = Math.round((total / weightSum) * 100);
+        double average = roundToTwoDecimalPlaces((total / weightSum) * 100);
+        double remaining = roundToTwoDecimalPlaces(100 - weightSum);
+        double required = roundToZeroDecimalPlaces(((targetMark - total) / remaining) * 100);
+        System.out.println("Weight sum: " + weightSum);
         if (weightSum < 100) {
-            double remaining = Math.round((100 - weightSum) * 100.0) / 100.0;
-            double required = Math.round(((targetMark - total) / remaining) * 100);
             if (required < 0) {
                 required = 0;
             }
             bottomLabel.setText("Need " + required + "/100 in remaining "
                     + remaining + "% to reach " + targetMark + "% overall. Current average is " + average + "%");
 
-            if  (required > 100) {
-                double maxPotentiallyAchieved = Math.round(total + ((remaining / 100.0) * 100));
+            double maxPotentiallyAchieved = roundToTwoDecimalPlaces(total + ((remaining / 100.0) * 100));
+            if  (required > 100 && (maxPotentiallyAchieved != targetMark)) {
                 bottomLabel.setText("Cannot reach " + targetMark + "% overall. " +
                         "Maximum overall grade that can be achieved is " + maxPotentiallyAchieved + "%");
             }
@@ -138,6 +174,18 @@ public class Main extends JFrame {
         else {
             bottomLabel.setText("Error: Total weight exceeds 100%");
         }
+
+        if (textBoxCounter == 0) {
+            bottomLabel.setText("Weighted Average or Remaining Mark will show here.");
+        }
+    }
+
+    public double roundToZeroDecimalPlaces(double number) {
+        return Math.round(number);
+    }
+
+    public double roundToTwoDecimalPlaces(double value) {
+        return Math.round(value * 100.0) / 100.0;
     }
 
     public static void main(String[] args) {
